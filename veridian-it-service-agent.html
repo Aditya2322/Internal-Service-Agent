@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Veridian IT Service Desk — Agent Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5F0;
+    --bg-panel: #FFFFFF;
+    --bg-sunken: #EFEDE4;
+    --ink: #16211C;
+    --ink-soft: #52605A;
+    --ink-faint: #8B968F;
+    --line: #DAD5C6;
+    --line-strong: #B9C4BC;
+    --verdian: #1F4B3F;
+    --verdian-ink: #E7F0EB;
+    --verdian-line: #1F4B3F;
+    --amber: #92640F;
+    --amber-bg: #FBF0DB;
+    --amber-line: #D9A63D;
+    --rust: #8A3324;
+    --rust-bg: #FBE9E4;
+    --rust-line: #C15A41;
+    --slate: #3E4C58;
+    --slate-bg: #E7ECEF;
+    --focus: #1F4B3F;
+    --radius: 3px;
+    font-size: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10150F;
+      --bg-panel: #161C16;
+      --bg-sunken: #0C110C;
+      --ink: #EAEFE9;
+      --ink-soft: #A9B6AC;
+      --ink-faint: #6E7A70;
+      --line: #2A342A;
+      --line-strong: #3C4A3C;
+      --verdian: #6FBE9C;
+      --verdian-ink: #12241C;
+      --verdian-line: #6FBE9C;
+      --amber: #E4B662;
+      --amber-bg: #2A2213;
+      --amber-line: #8A6A28;
+      --rust: #E39684;
+      --rust-bg: #2A1712;
+      --rust-line: #8A4432;
+      --slate: #AEBCC8;
+      --slate-bg: #1A2228;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #10150F;
+    --bg-panel: #161C16;
+    --bg-sunken: #0C110C;
+    --ink: #EAEFE9;
+    --ink-soft: #A9B6AC;
+    --ink-faint: #6E7A70;
+    --line: #2A342A;
+    --line-strong: #3C4A3C;
+    --verdian: #6FBE9C;
+    --verdian-ink: #12241C;
+    --verdian-line: #6FBE9C;
+    --amber: #E4B662;
+    --amber-bg: #2A2213;
+    --amber-line: #8A6A28;
+    --rust: #E39684;
+    --rust-bg: #2A1712;
+    --rust-line: #8A4432;
+    --slate: #AEBCC8;
+    --slate-bg: #1A2228;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  code, .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+
+  a { color: var(--verdian); }
+
+  .app {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  header.topbar {
+    padding: env(safe-area-inset-top, 0px) 0 0 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 20px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand .mark {
+    width: 26px; height: 26px;
+    border: 1.5px solid var(--verdian);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: var(--verdian);
+    flex-shrink: 0;
+  }
+  .brand h1 { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+  .brand .sub { font-size: 12.5px; color: var(--ink-faint); }
+  .topbar-right { display:flex; align-items:center; gap:14px; font-size:12.5px; color: var(--ink-faint); }
+  .week-pill {
+    border: 1px solid var(--line-strong);
+    padding: 4px 9px;
+    border-radius: var(--radius);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .theme-btn {
+    border: 1px solid var(--line-strong);
+    background: var(--bg-panel);
+    color: var(--ink-soft);
+    border-radius: var(--radius);
+    padding: 5px 8px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .theme-btn:hover { border-color: var(--verdian); color: var(--verdian); }
+
+  .tabs { display: none; border-top: 1px solid var(--line); }
+  .tabs button {
+    flex: 1; padding: 10px; background: var(--bg-panel); border: none;
+    font-family: inherit; font-size: 13px; color: var(--ink-faint);
+    border-bottom: 2px solid transparent; cursor: pointer;
+  }
+  .tabs button.active { color: var(--verdian); border-bottom-color: var(--verdian); font-weight: 600; }
+
+  main.layout {
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  section.pane { min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .pane-chat { border-right: 1px solid var(--line); }
+  .pane-right { display: grid; grid-template-rows: auto 1fr; min-height: 0; }
+
+  /* ---- Chat ---- */
+  .chat-scroller { flex: 1; overflow-y: auto; padding: 18px 20px 8px; }
+  .msg { max-width: 86%; margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
+  .msg.user { margin-left: auto; align-items: flex-end; }
+  .msg.agent { margin-right: auto; align-items: flex-start; }
+  .bubble {
+    padding: 10px 13px;
+    border-radius: var(--radius);
+    font-size: 14.5px;
+    line-height: 1.5;
+    white-space: pre-wrap;
+  }
+  .msg.user .bubble { background: var(--verdian); color: var(--verdian-ink); border-top-right-radius: 0; }
+  .msg.agent .bubble { background: var(--bg-sunken); border: 1px solid var(--line); border-top-left-radius: 0; }
+  .msg .who { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-faint); padding: 0 2px; }
+  .citepills { display:flex; flex-wrap:wrap; gap:6px; margin-top:2px; }
+  .citepill {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: 2px 6px; color: var(--ink-soft); background: var(--bg-panel);
+  }
+  .ticket-inline {
+    margin-top: 4px; border: 1px solid var(--verdian-line); border-radius: var(--radius);
+    padding: 8px 11px; font-size: 12.5px; background: var(--verdian-ink); color: var(--ink);
+    max-width: 340px;
+  }
+  .ticket-inline b { font-family: 'IBM Plex Mono', monospace; }
+
+  .composer {
+    border-top: 1px solid var(--line);
+    padding: 12px 16px;
+    background: var(--bg-panel);
+  }
+  .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 9px; }
+  .chip {
+    flex-shrink: 0;
+    font-size: 12px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-sunken);
+    color: var(--ink-soft);
+    padding: 5px 10px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--verdian); color: var(--verdian); }
+  .composer form { display: flex; gap: 8px; }
+  .composer input[type=text] {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14.5px;
+    padding: 10px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .composer input[type=text]:focus { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .composer button {
+    font-family: inherit; font-weight: 600; font-size: 13.5px;
+    background: var(--verdian); color: var(--verdian-ink);
+    border: none; border-radius: var(--radius);
+    padding: 0 18px; cursor: pointer;
+  }
+  .composer button:hover { opacity: 0.9; }
+  .composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .reset-row { text-align: right; margin-top: 6px; }
+  .reset-row button {
+    background: none; border: none; color: var(--ink-faint); font-size: 11.5px;
+    cursor: pointer; text-decoration: underline; font-family: inherit;
+  }
+
+  /* ---- Right pane ---- */
+  .rp-tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--bg-panel); }
+  .rp-tabs button {
+    flex: 1; padding: 11px 8px; background: none; border: none; cursor: pointer;
+    font-family: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: 0.01em;
+    color: var(--ink-faint); border-bottom: 2px solid transparent;
+  }
+  .rp-tabs button.active { color: var(--verdian); border-bottom-color: var(--verdian); }
+  .rp-body { overflow-y: auto; padding: 14px 16px 30px; }
+
+  .ticket-row {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    background: var(--bg-panel);
+  }
+  .ticket-row:hover { border-color: var(--verdian-line); }
+  .ticket-row .row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .ticket-row .tid { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft); }
+  .ticket-row .tsum { font-size: 13px; margin-top: 4px; color: var(--ink); }
+  .ticket-row .temp { font-size: 11.5px; color: var(--ink-faint); margin-top: 3px; }
+
+  .status-pill {
+    font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;
+    padding: 2px 7px; border-radius: 10px; white-space: nowrap; border: 1px solid transparent;
+  }
+  .status-resolved { background: var(--verdian-ink); color: var(--verdian); border-color: var(--verdian-line); }
+  .status-escalated { background: var(--rust-bg); color: var(--rust); border-color: var(--rust-line); }
+  .status-pending { background: var(--amber-bg); color: var(--amber); border-color: var(--amber-line); }
+  .status-progress { background: var(--slate-bg); color: var(--slate); border-color: var(--line-strong); }
+  .status-rejected { background: var(--bg-sunken); color: var(--ink-faint); border-color: var(--line-strong); }
+  .status-info { background: var(--slate-bg); color: var(--slate); border-color: var(--line-strong); }
+
+  .section-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-faint);
+    margin: 16px 0 8px; font-weight: 600;
+  }
+  .section-label:first-child { margin-top: 0; }
+
+  /* ---- Ticket detail drawer ---- */
+  .drawer-backdrop {
+    position: fixed; inset: 0; background: rgba(10,14,10,0.35); z-index: 20;
+    display: none;
+  }
+  .drawer-backdrop.open { display: block; }
+  .drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(440px, 92vw);
+    background: var(--bg-panel); border-left: 1px solid var(--line);
+    z-index: 21; transform: translateX(100%); transition: transform .22s ease;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    display: flex; flex-direction: column;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-head {
+    padding: 16px 18px; border-bottom: 1px solid var(--line);
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 10px;
+  }
+  .drawer-head .tid { font-family: 'IBM Plex Mono', monospace; font-size: 15px; font-weight: 600; }
+  .drawer-close { background: none; border: none; font-size: 20px; color: var(--ink-faint); cursor: pointer; line-height: 1; }
+  .drawer-body { padding: 16px 18px; overflow-y: auto; flex: 1; }
+  .kv { display: grid; grid-template-columns: 92px 1fr; gap: 6px 10px; font-size: 13px; margin-bottom: 14px; }
+  .kv dt { color: var(--ink-faint); }
+  .kv dd { margin: 0; }
+  .kv dd .status-pill { white-space: normal; display: inline-block; line-height: 1.4; }
+  .audit-item {
+    border-left: 2px solid var(--line-strong);
+    padding: 2px 0 12px 12px;
+    margin-left: 4px;
+    font-size: 12.5px;
+    position: relative;
+  }
+  .audit-item::before {
+    content: ""; position: absolute; left: -5px; top: 4px;
+    width: 8px; height: 8px; border-radius: 50%; background: var(--verdian);
+  }
+  .audit-item .ts { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: var(--ink-faint); }
+  .audit-item .actor { font-weight: 600; font-size: 11.5px; color: var(--ink-soft); margin-left: 6px; }
+  .audit-item .action { margin-top: 2px; color: var(--ink); }
+
+  /* ---- KB pane ---- */
+  .kb-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 11px 13px; margin-bottom: 9px; background: var(--bg-panel); }
+  .kb-card .kid { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: var(--verdian); font-weight: 600; }
+  .kb-card h4 { margin: 3px 0 5px; font-size: 13.5px; }
+  .kb-card p { margin: 0; font-size: 12.5px; color: var(--ink-soft); line-height: 1.5; }
+
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  @media (max-width: 860px) {
+    main.layout { grid-template-columns: 1fr; }
+    section.pane { display: none; }
+    section.pane.mobile-active { display: flex; }
+    .pane-chat { border-right: none; }
+    .tabs { display: flex; }
+    .topbar-right .week-pill { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="mark">V</span>
+        <div>
+          <h1>Veridian Service Desk</h1>
+          <div class="sub">Internal Service Agent — IT Support — Prototype</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <span class="week-pill">Week of Mon 21 – Fri 25 Sep 2026</span>
+        <button class="theme-btn" id="themeBtn" type="button" title="Toggle theme">◐ Theme</button>
+      </div>
+    </div>
+    <div class="tabs" id="mobileTabs">
+      <button data-pane="chat" class="active">Chat</button>
+      <button data-pane="right">Tickets &amp; KB</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="pane pane-chat mobile-active" id="paneChat">
+      <div class="chat-scroller" id="chatScroller"></div>
+      <div class="composer">
+        <div class="chips" id="chipRow"></div>
+        <form id="composerForm">
+          <input type="text" id="msgInput" autocomplete="off" placeholder="Describe an IT issue…" />
+          <button type="submit">Send</button>
+        </form>
+        <div class="reset-row"><button type="button" id="resetBtn">Reset conversation &amp; new tickets</button></div>
+      </div>
+    </section>
+
+    <section class="pane pane-right" id="paneRight">
+      <div class="rp-tabs">
+        <button data-rp="tickets" class="active">Tickets</button>
+        <button data-rp="kb">Knowledge Base</button>
+        <button data-rp="about">How this works</button>
+      </div>
+      <div class="rp-body" id="rpBody"></div>
+    </section>
+  </main>
+</div>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <div>
+      <div class="tid" id="drawerTid">TK-0000</div>
+    </div>
+    <button class="drawer-close" id="drawerClose" aria-label="Close">×</button>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<script>
+// ============================================================================
+// DATA PACK — verbatim from Assignment 2 Data Pack (Veridian Corp, IT Support)
+// This is the ONLY source of policy/ground truth the agent is allowed to use.
+// ============================================================================
+
+const KB = [
+  {
+    id: "KB-01",
+    title: "Password Reset",
+    text: "Employees can reset their own password via the self-service portal at any time. If locked out after 5 failed attempts, contact IT to unlock the account manually. No approval required."
+  },
+  {
+    id: "KB-02",
+    title: "VPN Access",
+    text: "VPN access is granted automatically to all full-time employees. Contractors require manager approval submitted via the access request form. VPN credentials expire every 90 days and must be renewed by the employee."
+  },
+  {
+    id: "KB-03",
+    title: "Laptop Replacement",
+    text: "Laptops are eligible for replacement after 3 years of service, or earlier in case of verified hardware failure. Requests must be raised at least 2 weeks in advance of intended replacement."
+  },
+  {
+    id: "KB-04",
+    title: "Software Installation Requests",
+    text: "Standard software (listed in the approved catalog) can be self-installed. Non-catalog software requires IT Security review, which takes 3–5 business days."
+  },
+  {
+    id: "KB-05",
+    title: "Printer Troubleshooting",
+    text: "For printer issues, first check the printer queue and restart the print spooler. If the issue persists after restart, log a ticket with the printer's asset tag."
+  },
+  {
+    id: "KB-06",
+    title: "Email Mailbox Quota",
+    text: "Default mailbox quota is 25GB. Employees nearing quota should archive old mail. Quota increases beyond 25GB require manager approval and are capped at 50GB."
+  },
+  {
+    id: "KB-07",
+    title: "Guest Wi-Fi Access",
+    text: "Guest Wi-Fi credentials are valid for 24 hours and can be generated by any employee from the front-desk kiosk. No IT ticket required."
+  },
+  {
+    id: "KB-08",
+    title: "Expense Software Access",
+    text: "Access to the expense management tool is granted by Finance, not IT. IT can only assist with login/technical issues once an account already exists."
+  },
+  {
+    id: "KB-09",
+    title: "Security Incident Reporting",
+    text: "Any suspected phishing email, malware, or unauthorized access attempt must be reported to security@veridian-corp.example immediately and should not be forwarded to other employees."
+  },
+  {
+    id: "KB-10",
+    title: "Work-From-Home Equipment",
+    text: "Employees working remotely more than 3 days/week are eligible for a one-time home office equipment allowance (chair, monitor). Requires manager sign-off and Finance processing — IT only handles the equipment shipping request once approved."
+  },
+  {
+    id: "ASSET-POLICY",
+    title: "Asset Management Policy (Extract) — Finance & Assets, updated Q2 2026",
+    text: "All company-issued hardware, including laptops and monitors, follows a standard 4-year refresh cycle from date of issue. Early replacement outside this cycle requires Finance sign-off in addition to IT approval."
+  }
+];
+
+function kbById(id) { return KB.find(k => k.id === id); }
+
+// Employee requests from Section 2 of the data pack — used to power the quick chips.
+const EMPLOYEE_REQUESTS = [
+  { id: "REQ-01", name: "Aditi Sharma", email: "aditi.sharma@veridiancorp.example", date: "Mon 21 Sep", text: "My laptop won't turn on at all, it's completely dead, had it about 3.5 years now." },
+  { id: "REQ-02", name: "Vikram Chawla", email: "vikram.chawla@veridiancorp.example", date: "Mon 21 Sep", text: "Can I get Wi-Fi access for a guest visiting our office tomorrow?" },
+  { id: "REQ-03", name: "Karan Mehta", email: "karan.mehta@veridiancorp.example", date: "Mon 21 Sep", text: "I'm locked out of my account, tried my password 6 times." },
+  { id: "REQ-04", name: "Ritu Bhatia", email: "ritu.bhatia@veridiancorp.example", date: "Tue 22 Sep", text: "Need approval to install a data-analysis tool that's not in the software catalog." },
+  { id: "REQ-05", name: "Sanjay Oberoi", email: "sanjay.oberoi@veridiancorp.example", date: "Tue 22 Sep", text: "My VPN stopped working this morning, says credentials expired." },
+  { id: "REQ-06", name: "Meera Iyer", email: "meera.iyer@veridiancorp.example", date: "Tue 22 Sep", text: "Printer on the 3rd floor keeps showing \"paper jam\" even though there's no jam." },
+  { id: "REQ-07", name: "Farhan Ali", email: "farhan.ali@veridiancorp.example", date: "Wed 23 Sep", text: "I've started working from home 4 days a week, how do I get a monitor?" },
+  { id: "REQ-08", name: "Ananya Reddy", email: "ananya.reddy@veridiancorp.example", date: "Wed 23 Sep", text: "I think I got a phishing email asking for my login — forwarding it to a few teammates to check." },
+  { id: "REQ-09", name: "Rohit Desai", email: "rohit.desai@veridiancorp.example", date: "Wed 23 Sep", text: "My mailbox is full and I can't send emails." },
+  { id: "REQ-10", name: "Kavya Pillai", email: "kavya.pillai@veridiancorp.example", date: "Wed 23 Sep", text: "Can someone give me admin access to the finance reporting server? Need it urgently for month-end." },
+  { id: "REQ-11", name: "Nikhil Bansal", email: "nikhil.bansal@veridiancorp.example", date: "Thu 24 Sep", text: "New contractor joining my team next week, they'll need VPN access." },
+  { id: "REQ-12", name: "Sneha Kulkarni", email: "sneha.kulkarni@veridiancorp.example", date: "Thu 24 Sep", text: "I can't log into the expense tool, keeps saying invalid credentials." },
+  { id: "REQ-13", name: "Aman Gupta", email: "aman.gupta@veridiancorp.example", date: "Thu 24 Sep", text: "Laptop screen is flickering on and off, had it 2 years, might just need a fix not a replacement." },
+  { id: "REQ-14", name: "Tanya Chopra", email: "tanya.chopra@veridiancorp.example", date: "Fri 25 Sep", text: "Requesting approval to install a browser extension for productivity tracking." },
+  { id: "REQ-15", name: "Rahul Menon", email: "rahul.menon@veridiancorp.example", date: "Fri 25 Sep", text: "hey can you help, its not working" }
+];
+
+// Existing ticket queue (Section 3) — seeded as history. Closed tickets are shown
+// as read-only precedent; active ones are shown as already in flight.
+const SEED_TICKETS = [
+  { id: "TK-1042", employee: "R. Verma", summary: "VPN credential expired", category: "KB-02", status: "Resolved", closed: true,
+    audit: [{ ts: "2026-09-15 09:10", actor: "Agent", action: "Self-renewal instructions issued per KB-02." },
+            { ts: "2026-09-15 09:22", actor: "R. Verma", action: "Confirmed renewed." }] },
+  { id: "TK-1043", employee: "S. Iyer", summary: "Laptop replacement (3.2 yrs old)", category: "KB-03", status: "Approved — pending fulfillment", closed: false,
+    audit: [{ ts: "2026-09-10 11:00", actor: "S. Iyer", action: "Requested replacement, device age 3.2 years." },
+            { ts: "2026-09-11 14:30", actor: "IT", action: "Verified hardware condition; early-replacement case under ASSET-POLICY (4-yr cycle)." },
+            { ts: "2026-09-12 10:05", actor: "Finance", action: "Sign-off granted for early replacement." },
+            { ts: "2026-09-12 10:06", actor: "IT", action: "Approved — pending fulfillment." }] },
+  { id: "TK-1044", employee: "A. Khan", summary: "Non-catalog software request", category: "KB-04", status: "Pending Security review", closed: false,
+    audit: [{ ts: "2026-09-16 08:40", actor: "A. Khan", action: "Requested install of non-catalog tool." },
+            { ts: "2026-09-16 08:41", actor: "Agent", action: "Routed to IT Security review per KB-04 (3–5 business days)." }] },
+  { id: "TK-1045", employee: "P. Joshi", summary: "Mailbox quota increase", category: "KB-06", status: "Approved at 35GB", closed: true,
+    audit: [{ ts: "2026-09-08 09:00", actor: "P. Joshi", action: "Requested quota increase." },
+            { ts: "2026-09-08 13:15", actor: "Manager", action: "Approved increase to 35GB (within 50GB cap)." }] },
+  { id: "TK-1046", employee: "M. Das", summary: "Printer paper jam, floor 2", category: "KB-05", status: "Resolved", closed: true,
+    audit: [{ ts: "2026-09-09 10:00", actor: "M. Das", action: "Reported persistent paper jam." },
+            { ts: "2026-09-09 10:40", actor: "IT", action: "Spooler restarted, tray realigned. Issue resolved." }] },
+  { id: "TK-1047", employee: "K. Singh", summary: "Home office equipment request", category: "KB-10", status: "Pending Finance", closed: false,
+    audit: [{ ts: "2026-09-17 09:30", actor: "K. Singh", action: "Requested chair + monitor, WFH 4 days/week." },
+            { ts: "2026-09-17 09:35", actor: "Manager", action: "Sign-off granted." },
+            { ts: "2026-09-17 09:36", actor: "Agent", action: "Routed to Finance for processing per KB-10." }] },
+  { id: "TK-1048", employee: "T. Rao", summary: "Phishing email reported", category: "KB-09", status: "Escalated to Security — under investigation", closed: false,
+    audit: [{ ts: "2026-09-18 12:05", actor: "T. Rao", action: "Reported suspected phishing email." },
+            { ts: "2026-09-18 12:05", actor: "Agent", action: "Auto-escalated to security@veridian-corp.example per KB-09." }] },
+  { id: "TK-1049", employee: "V. Nambiar", summary: "Password reset", category: "KB-01", status: "Resolved", closed: true,
+    audit: [{ ts: "2026-09-14 15:00", actor: "V. Nambiar", action: "Requested reset via self-service portal." },
+            { ts: "2026-09-14 15:02", actor: "Agent", action: "Confirmed self-service reset per KB-01." }] },
+  { id: "TK-1050", employee: "J. Fernandes", summary: "Admin access request", category: "OTHER", status: "Rejected — no business justification provided", closed: true,
+    audit: [{ ts: "2026-09-05 09:00", actor: "J. Fernandes", action: "Requested admin access to internal server." },
+            { ts: "2026-09-05 09:10", actor: "Agent", action: "No governing self-service policy found; flagged as high-risk privileged access." },
+            { ts: "2026-09-06 11:00", actor: "System Owner", action: "Rejected — no business justification provided." }] },
+  { id: "TK-1051", employee: "L. Menon", summary: "Guest Wi-Fi issued", category: "KB-07", status: "Resolved", closed: true,
+    audit: [{ ts: "2026-09-19 08:50", actor: "L. Menon", action: "Generated guest Wi-Fi at front-desk kiosk per KB-07." }] }
+];
+
+const TODAY_LABEL = "Fri 25 Sep 2026";
+
+// ============================================================================
+// AGENT — deterministic policy-grounded decision engine.
+// Runs entirely client-side: no LLM call required, so the prototype works with
+// zero configuration. See "How this works" in the UI / AI_TOOLS_USED.md for
+// where an LLM would be layered in for a production build.
+//
+// Every decision the agent makes cites the KB id(s) it used. If nothing in the
+// KB governs a request, the agent says so explicitly rather than inventing a
+// policy (mirrors the "flag unclear ownership rather than inventing it" rule).
+// ============================================================================
+
+// Keywords are split into "strong" (names a specific system/policy area — always
+// wins) and "weak" (generic phrasing like "can't log in" that many categories
+// could plausibly use, and should only decide the category when nothing more
+// specific is present). This stops e.g. an expense-tool login issue from being
+// misclassified as a plain password reset just because both mention "log in".
+const CATEGORY_KEYWORDS = {
+  "KB-09": { strong: ["phishing", "malware", "suspicious email", "unauthorized access", "security incident", "virus", "hacked", "scam email"], weak: [] },
+  "KB-01": { strong: ["password", "locked out", "lockout", "lock out", "forgot my password", "account locked", "self-service portal"], weak: ["can't log in", "cant log in", "cannot log in", "cant sign in", "can't sign in", "login failed"] },
+  "OTHER-ADMIN": { strong: ["admin access", "root access", "administrator access", "privileged access", "admin rights", "sudo access"], weak: [] },
+  "KB-02": { strong: ["vpn"], weak: [] },
+  "KB-08": { strong: ["expense tool", "expense software", "expense management", "expense system", "expense app"], weak: ["expense"] },
+  "KB-07": { strong: ["guest wifi", "guest wi-fi", "guest network", "front-desk kiosk"], weak: ["guest"] },
+  "KB-10": { strong: ["work from home", "wfh", "home office", "office chair", "ergonomic chair"], weak: ["remote", "monitor"] },
+  "KB-06": { strong: ["mailbox", "email quota", "inbox full", "storage full", "can't send email", "cant send email", "mail quota"], weak: ["quota"] },
+  "KB-05": { strong: ["printer", "paper jam", "print queue", "spooler", "printing"], weak: [] },
+  "KB-03": { strong: ["laptop", "notebook won't turn on", "screen flicker", "laptop dead", "laptop broken", "laptop screen", "device won't turn on", "hardware failure", "won't turn on", "wont turn on"], weak: [] },
+  "KB-04": { strong: ["install", "non-catalog", "browser add-on", "browser extension", "software catalog"], weak: ["software", "extension", "application"] }
+};
+
+const PRIORITY_ORDER = ["KB-09", "OTHER-ADMIN", "KB-02", "KB-08", "KB-07", "KB-10", "KB-06", "KB-05", "KB-03", "KB-04", "KB-01"];
+
+function classify(rawText) {
+  const text = " " + rawText.toLowerCase() + " ";
+
+  // Special-case: "Wi-Fi" + "guest" together, in either order/spacing, is
+  // always a guest Wi-Fi request even if the exact phrase isn't matched above.
+  if (/guest/.test(text) && /wi[\s-]?fi/.test(text)) return "KB-07";
+
+  let strongBest = null, strongScore = 0;
+  for (const cat of PRIORITY_ORDER) {
+    let score = 0;
+    for (const kw of CATEGORY_KEYWORDS[cat].strong) {
+      if (text.includes(kw)) score += kw.length;
+    }
+    if (score > strongScore) { strongScore = score; strongBest = cat; }
+  }
+  if (strongBest) return strongBest;
+
+  let weakBest = null, weakScore = 0;
+  for (const cat of PRIORITY_ORDER) {
+    let score = 0;
+    for (const kw of CATEGORY_KEYWORDS[cat].weak) {
+      if (text.includes(kw)) score += kw.length;
+    }
+    if (score > weakScore) { weakScore = score; weakBest = cat; }
+  }
+  return weakBest;
+}
+
+function extractYears(text) {
+  const m = text.match(/(\d+(?:\.\d+)?)\s*(?:years?|yrs?|y\b)/i);
+  return m ? parseFloat(m[1]) : null;
+}
+
+function mentionsContractor(text) {
+  return /contractor|contract worker|contract staff|freelancer/i.test(text);
+}
+
+function mentionsFullTime(text) {
+  return /full[\s-]?time|fte\b|permanent employee/i.test(text);
+}
+
+function daysRemote(text) {
+  const m = text.match(/(\d)\s*days?\s*(?:a|per)?\s*week/i);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+function isVague(text) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const hasSignal = classify(text) !== null;
+  return !hasSignal && words.length <= 8;
+}
+
+// ---- Category handlers -----------------------------------------------------
+// Each handler returns a decision object:
+// { status: 'resolve'|'escalate'|'followup', message, citations:[ids],
+//   assignedTo, statusLabel, followup?: {kind, category} }
+
+function handlePassword(text) {
+  const failed = text.match(/(\d+)\s*(?:times|attempts)/i);
+  const n = failed ? parseInt(failed[1], 10) : null;
+  if (n !== null && n >= 5) {
+    return {
+      status: "escalate",
+      statusLabel: "In Progress — IT unlocking",
+      assignedTo: "IT",
+      citations: ["KB-01"],
+      message: `That's past the 5-failed-attempt threshold, so self-service reset won't unlock it. Per KB-01, I've routed this to IT for a manual unlock — no approval needed. You'll get a confirmation once it's done.`
+    };
+  }
+  return {
+    status: "resolve",
+    statusLabel: "Resolved — self-service",
+    assignedTo: "Employee",
+    citations: ["KB-01"],
+    message: `You can reset this yourself any time via the self-service portal — per KB-01, no approval or ticket is required. If you hit 5 failed attempts and get locked out, message me again and I'll route it to IT for a manual unlock.`
+  };
+}
+
+function handleVPN(text) {
+  if (mentionsContractor(text)) {
+    return {
+      status: "escalate",
+      statusLabel: "Pending manager approval",
+      assignedTo: "Manager",
+      citations: ["KB-02"],
+      message: `Per KB-02, contractors don't get VPN access automatically — their manager needs to submit the access request form for approval. I've opened a ticket routed to the manager for sign-off; once approved, IT will provision access. Credentials will then expire on a 90-day renewal cycle, same as everyone else's.`
+    };
+  }
+  return {
+    status: "resolve",
+    statusLabel: "Resolved — self-service",
+    assignedTo: "Employee",
+    citations: ["KB-02"],
+    message: `Per KB-02, VPN credentials expire every 90 days and renewal is self-service — no approval needed for a full-time employee. Please renew through the VPN client/portal. If renewal itself fails (not just an expiry notice), let me know and I'll escalate to IT.`
+  };
+}
+
+function handleLaptop(text) {
+  const years = extractYears(text);
+  const failureWords = /dead|won'?t turn on|wont turn on|no power|not turning on|screen flicker|broken/i.test(text);
+
+  if (years !== null && years < 3 && !failureWords) {
+    return {
+      status: "followup",
+      citations: ["KB-03"],
+      message: `Your device is under the standard 3-year replacement window in KB-03, so a routine replacement isn't eligible yet. Is this actually a hardware fault (won't boot, physical damage, etc.), or more of a performance complaint? If it's a verified fault, KB-03 allows earlier replacement.`,
+      followup: { kind: "laptop_fault_check", category: "KB-03" }
+    };
+  }
+
+  if (failureWords) {
+    // Potential conflict: KB-03 allows early replacement for verified hardware failure;
+    // Asset Management Policy imposes a 4-year cycle and requires Finance sign-off for
+    // anything early. The agent surfaces this conflict rather than silently picking one.
+    return {
+      status: "escalate",
+      statusLabel: "Escalated — hardware verification + Finance sign-off",
+      assignedTo: "IT + Finance",
+      citations: ["KB-03", "ASSET-POLICY"],
+      message: `Two policies apply here and they don't fully agree: KB-03 allows early replacement for verified hardware failure, but the Asset Management Policy sets a 4-year refresh cycle and requires Finance sign-off for anything earlier than that${years ? ` (yours is ~${years} yrs)` : ""}. I'm not able to resolve that conflict myself, so I've opened a ticket for IT to verify the fault and Finance to sign off — the same path used for TK-1043 (approved at 3.2 yrs). You don't need to do anything further right now.`
+    };
+  }
+
+  return {
+    status: "followup",
+    citations: ["KB-03"],
+    message: `Can you tell me a bit more — is the laptop actually failing (won't power on, physical damage), and roughly how old is it? That decides whether this is a routine 3-year replacement (KB-03) or needs Finance sign-off for an early swap.`,
+    followup: { kind: "laptop_fault_check", category: "KB-03" }
+  };
+}
+
+function handleSoftware(text) {
+  const explicitlyNonCatalog = /not in the (?:software )?catalog|non-?catalog|isn'?t (?:in the )?catalog/i.test(text);
+  const isExtension = /extension|add-?on/i.test(text);
+  const trackingConcern = /tracking|monitoring|surveillance/i.test(text);
+
+  if (explicitlyNonCatalog) {
+    return {
+      status: "escalate",
+      statusLabel: "Pending Security review",
+      assignedTo: "IT Security",
+      citations: ["KB-04"],
+      message: `Since this isn't in the approved catalog, per KB-04 it needs an IT Security review before install — that typically takes 3–5 business days. I've opened a ticket for Security.${trackingConcern ? " Flagging for Security's attention: this is a monitoring/tracking-type extension, which usually gets extra scrutiny beyond the standard non-catalog review." : ""}`
+    };
+  }
+  return {
+    status: "followup",
+    citations: ["KB-04"],
+    message: `Is this listed in the approved software catalog? Catalog software can be self-installed with no ticket; anything outside the catalog needs a 3–5 business day IT Security review per KB-04.`,
+    followup: { kind: "software_catalog_check", category: "KB-04" }
+  };
+}
+
+function handlePrinter(text) {
+  const alreadyTried = /restart(?:ed)?|already (?:tried|restarted|checked)|still (?:not working|jammed|showing)|persists?/i.test(text);
+  if (alreadyTried) {
+    return {
+      status: "escalate",
+      statusLabel: "In Progress — technician assigned",
+      assignedTo: "IT",
+      citations: ["KB-05"],
+      message: `Since restarting the spooler and clearing the queue didn't fix it, per KB-05 this goes to a technician with the printer's asset tag. I've logged the ticket — could you share the printer's asset tag (usually a sticker on the side/back) so it's routed correctly?`
+    };
+  }
+  return {
+    status: "followup",
+    citations: ["KB-05"],
+    message: `Per KB-05, first check the print queue and restart the print spooler — that clears most false paper-jam errors. Can you try that and let me know if it's still happening afterwards?`,
+    followup: { kind: "printer_retry_check", category: "KB-05" }
+  };
+}
+
+function handleMailbox(text) {
+  return {
+    status: "escalate",
+    statusLabel: "Pending manager approval (interim: archive)",
+    assignedTo: "Employee + Manager",
+    citations: ["KB-06"],
+    message: `Immediate fix: archive older mail to get under the 25GB default quota per KB-06 — that unblocks sending right away. If you need more room long-term, a quota increase needs manager approval and is capped at 50GB. I've opened a ticket for that approval in parallel so you're not blocked either way.`
+  };
+}
+
+function handleGuestWifi(text) {
+  return {
+    status: "resolve",
+    statusLabel: "Resolved — self-service",
+    assignedTo: "Employee",
+    citations: ["KB-07"],
+    message: `No ticket needed — per KB-07, any employee can generate guest Wi-Fi credentials from the front-desk kiosk, valid for 24 hours. You can do this yourself right before your guest arrives.`
+  };
+}
+
+function handleExpense(text) {
+  const isAccessRequest = /don'?t have (?:an )?account|need access|no account|get access|create.*account/i.test(text);
+  if (isAccessRequest) {
+    return {
+      status: "escalate",
+      statusLabel: "Routed to Finance",
+      assignedTo: "Finance",
+      citations: ["KB-08"],
+      message: `Per KB-08, access to the expense tool is granted by Finance, not IT — I've routed this to Finance to set up your account. Once you have one, come back to IT for any login/technical issues.`
+    };
+  }
+  return {
+    status: "followup",
+    citations: ["KB-08"],
+    message: `Per KB-08, IT can help with login/technical issues on an existing expense-tool account (Finance handles granting access itself). Could you send a screenshot of the exact error you're seeing?`,
+    followup: { kind: "expense_screenshot", category: "KB-08" }
+  };
+}
+
+function handleSecurity(text) {
+  const forwarded = /forward(?:ed|ing)?\s+(?:it\s+)?to/i.test(text);
+  let message = `Reported and escalated to security@veridian-corp.example immediately per KB-09 — no ticket delay on this one.`;
+  if (forwarded) {
+    message += ` One flag: KB-09 says a suspected phishing email should go straight to Security and should not be forwarded to other employees. Please avoid forwarding it further — Security will loop in anyone who needs to know.`;
+  }
+  return {
+    status: "escalate",
+    statusLabel: "Escalated to Security",
+    assignedTo: "Security",
+    citations: ["KB-09"],
+    message
+  };
+}
+
+function handleWFH(text) {
+  const days = daysRemote(text);
+  if (days !== null && days <= 3) {
+    return {
+      status: "followup",
+      citations: ["KB-10"],
+      message: `KB-10's home-office allowance applies to employees remote more than 3 days/week — at ${days} day(s)/week you're not over that threshold. Is your remote schedule actually more than 3 days/week, or did I misread that?`,
+      followup: { kind: "wfh_days_check", category: "KB-10" }
+    };
+  }
+  return {
+    status: "escalate",
+    statusLabel: "Pending manager sign-off + Finance",
+    assignedTo: "Manager + Finance",
+    citations: ["KB-10"],
+    message: `You qualify under KB-10 (remote more than 3 days/week) for a one-time home office allowance. It needs your manager's sign-off and Finance processing first — IT only handles shipping once that's approved. I've opened a ticket routed to your manager to start that.`
+  };
+}
+
+function handleAdminAccess(text) {
+  return {
+    status: "escalate",
+    statusLabel: "Escalated — no policy grants this",
+    assignedTo: "System Owner",
+    citations: [],
+    message: `I don't have a KB policy that lets IT grant admin/privileged server access directly — this needs a documented business justification and sign-off from the system's owner (and likely your manager). Urgency on its own isn't sufficient grounds, and the last similar request (TK-1050) was rejected for missing business justification. I've opened a ticket routed for approval rather than granting anything myself — could you add the specific business justification so it can be reviewed quickly?`
+  };
+}
+
+function handleVague() {
+  return {
+    status: "followup",
+    citations: [],
+    message: `Could you say a bit more about what's not working — which system or device, and what you were trying to do? I'd rather ask than guess at the wrong fix.`,
+    followup: { kind: "clarify_vague", category: null }
+  };
+}
+
+const HANDLERS = {
+  "KB-01": handlePassword,
+  "KB-02": handleVPN,
+  "KB-03": handleLaptop,
+  "KB-04": handleSoftware,
+  "KB-05": handlePrinter,
+  "KB-06": handleMailbox,
+  "KB-07": handleGuestWifi,
+  "KB-08": handleExpense,
+  "KB-09": handleSecurity,
+  "KB-10": handleWFH,
+  "OTHER-ADMIN": handleAdminAccess
+};
+
+// Interpret a free-text answer to a previously-asked follow-up question.
+function resolveFollowup(followup, answerText, originalText) {
+  const text = answerText.toLowerCase();
+  const yes = /\b(yes|yeah|yep|correct|right|true|it is)\b/.test(text);
+  const no = /\b(no|nope|not really|false|it'?s not)\b/.test(text);
+
+  switch (followup.kind) {
+    case "laptop_fault_check": {
+      const failureWords = /dead|won'?t turn on|wont turn on|no power|broken|hardware|fault|damage/i.test(text) || yes;
+      if (failureWords) {
+        return {
+          status: "escalate",
+          statusLabel: "Escalated — hardware verification + Finance sign-off",
+          assignedTo: "IT + Finance",
+          citations: ["KB-03", "ASSET-POLICY"],
+          message: `Understood — treating this as a verified/likely hardware fault. As with TK-1043, early replacement inside the 4-year Asset Management Policy cycle needs both IT verification and Finance sign-off; a routine 3-year-mark replacement only needs KB-03. I've opened a ticket for IT to verify the fault, which will determine which path applies.`
+        };
+      }
+      return {
+        status: "escalate",
+        statusLabel: "In Progress — troubleshooting",
+        assignedTo: "IT",
+        citations: ["KB-03"],
+        message: `Since it doesn't sound like a hardware fault, I've opened a repair/troubleshooting ticket with IT rather than a replacement request — that's usually faster and doesn't need Finance sign-off. If IT determines it can't be fixed, they'll convert this into a replacement case under KB-03 / the Asset Management Policy.`
+      };
+    }
+    case "software_catalog_check": {
+      if (no) {
+        return {
+          status: "escalate",
+          statusLabel: "Pending Security review",
+          assignedTo: "IT Security",
+          citations: ["KB-04"],
+          message: `Got it — since it's not in the catalog, per KB-04 this needs an IT Security review (3–5 business days). I've opened a ticket for Security.`
+        };
+      }
+      if (yes) {
+        return {
+          status: "resolve",
+          statusLabel: "Resolved — self-install",
+          assignedTo: "Employee",
+          citations: ["KB-04"],
+          message: `Since it's in the approved catalog, per KB-04 you can self-install it directly — no ticket or review needed.`
+        };
+      }
+      return {
+        status: "escalate",
+        statusLabel: "Pending Security review",
+        assignedTo: "IT Security",
+        citations: ["KB-04"],
+        message: `I can't confirm catalog status from that — to stay safe I've routed this to IT Security for the standard non-catalog review (3–5 business days) per KB-04. If it turns out to be catalog software, they'll close this out immediately and you can self-install.`
+      };
+    }
+    case "printer_retry_check": {
+      if (no) {
+        return {
+          status: "resolve",
+          statusLabel: "Resolved",
+          assignedTo: "Employee",
+          citations: ["KB-05"],
+          message: `Good — glad that fixed it, no ticket needed.`
+        };
+      }
+      return {
+        status: "escalate",
+        statusLabel: "In Progress — technician assigned",
+        assignedTo: "IT",
+        citations: ["KB-05"],
+        message: `Since it's still happening after a spooler restart, per KB-05 this goes to a technician with the printer's asset tag. I've logged the ticket — please share the asset tag when you can.`
+      };
+    }
+    case "wfh_days_check": {
+      const days = daysRemote(text);
+      const overThreshold = (days !== null && days > 3) || (yes && days === null);
+      if (overThreshold) {
+        return {
+          status: "escalate",
+          statusLabel: "Pending manager sign-off + Finance",
+          assignedTo: "Manager + Finance",
+          citations: ["KB-10"],
+          message: `Thanks — that qualifies under KB-10. It needs manager sign-off and Finance processing before IT handles shipping. I've opened a ticket routed to your manager.`
+        };
+      }
+      return {
+        status: "resolve",
+        statusLabel: "Not eligible",
+        assignedTo: "Employee",
+        citations: ["KB-10"],
+        message: `At 3 days/week or fewer, KB-10's home-office allowance threshold ("more than 3 days/week") isn't met, so I can't route this for equipment approval. Happy to revisit if your remote schedule changes.`
+      };
+    }
+    case "expense_screenshot": {
+      return {
+        status: "escalate",
+        statusLabel: "In Progress — IT reviewing",
+        assignedTo: "IT",
+        citations: ["KB-08"],
+        message: `Thanks, noted on the ticket for IT to investigate the login issue. If it turns out your account was never provisioned, per KB-08 that part gets routed to Finance instead.`
+      };
+    }
+    case "clarify_vague": {
+      const cat = classify(answerText);
+      if (cat && HANDLERS[cat]) {
+        return HANDLERS[cat](answerText);
+      }
+      return {
+        status: "followup",
+        citations: [],
+        message: `I still don't have enough to match this to a known IT service area (accounts, VPN, hardware, software, printers, mailbox, Wi-Fi, expense tool, security, or home-office equipment). Could you name the system and what's going wrong?`,
+        followup: { kind: "clarify_vague", category: null }
+      };
+    }
+    default:
+      return { status: "followup", citations: [], message: "Could you clarify that a bit more?", followup };
+  }
+}
+
+function runAgent(text, pendingFollowup) {
+  if (pendingFollowup) {
+    return resolveFollowup(pendingFollowup, text, text);
+  }
+  if (isVague(text)) {
+    return handleVague();
+  }
+  const cat = classify(text);
+  if (!cat || !HANDLERS[cat]) {
+    return {
+      status: "followup",
+      citations: [],
+      message: `I don't have a Knowledge Base policy that clearly matches this. Could you tell me more about which system this involves — accounts/password, VPN, laptop hardware, software installs, printers, mailbox, guest Wi-Fi, the expense tool, a security concern, or home-office equipment?`,
+      followup: { kind: "clarify_vague", category: null }
+    };
+  }
+  return HANDLERS[cat](text);
+}
+
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "veridian-agent-state-v1";
+  let ticketSeq = 1052;
+  let tickets = [];      // live tickets created in this session
+  let messages = [];      // {who:'user'|'agent', text, citations?, ticketId?}
+  let pendingFollowup = null;
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return false;
+      const s = JSON.parse(raw);
+      ticketSeq = s.ticketSeq || 1052;
+      tickets = s.tickets || [];
+      messages = s.messages || [];
+      pendingFollowup = s.pendingFollowup || null;
+      return true;
+    } catch (e) { return false; }
+  }
+  function saveState() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ ticketSeq, tickets, messages, pendingFollowup }));
+    } catch (e) { /* storage unavailable — session still works in-memory */ }
+  }
+
+  function nowStamp() {
+    // Fixed narrative "today" so the demo stays consistent with the data pack's week.
+    const d = new Date();
+    const t = d.toTimeString().slice(0, 5);
+    return `${TODAY_LABEL} ${t}`;
+  }
+
+  function createTicket(seed) {
+    const id = "TK-" + (ticketSeq++);
+    const t = {
+      id,
+      employee: seed.employee || "You",
+      summary: seed.summary,
+      category: seed.category || null,
+      status: seed.statusLabel,
+      assignedTo: seed.assignedTo,
+      citations: seed.citations || [],
+      closed: /resolved|rejected|not eligible/i.test(seed.statusLabel || ""),
+      audit: [
+        { ts: nowStamp(), actor: "Employee", action: seed.summary },
+        { ts: nowStamp(), actor: "Agent", action: `${seed.message.slice(0, 140)}${seed.message.length > 140 ? "…" : ""}` }
+      ]
+    };
+    tickets.unshift(t);
+    return t;
+  }
+
+  function updateLastTicketFollowup(seed, answerText) {
+    if (!tickets.length) return null;
+    const t = tickets[0];
+    t.status = seed.statusLabel;
+    t.assignedTo = seed.assignedTo;
+    t.citations = Array.from(new Set([...(t.citations || []), ...(seed.citations || [])]));
+    t.closed = /resolved|rejected|not eligible/i.test(seed.statusLabel || "");
+    t.audit.push({ ts: nowStamp(), actor: "Employee", action: answerText });
+    t.audit.push({ ts: nowStamp(), actor: "Agent", action: `${seed.message.slice(0, 140)}${seed.message.length > 140 ? "…" : ""}` });
+    return t;
+  }
+
+  // ---- Chat rendering -------------------------------------------------------
+  const chatScroller = document.getElementById("chatScroller");
+
+  function citeLabel(id) {
+    const k = kbById(id);
+    return k ? `${id} — ${k.title}` : id;
+  }
+
+  function renderMessage(m) {
+    const wrap = document.createElement("div");
+    wrap.className = "msg " + (m.who === "user" ? "user" : "agent");
+    const who = document.createElement("div");
+    who.className = "who";
+    who.textContent = m.who === "user" ? "You" : "Service Desk Agent";
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.textContent = m.text;
+    wrap.appendChild(who);
+    wrap.appendChild(bubble);
+
+    if (m.citations && m.citations.length) {
+      const pills = document.createElement("div");
+      pills.className = "citepills";
+      m.citations.forEach(id => {
+        const p = document.createElement("span");
+        p.className = "citepill";
+        p.textContent = citeLabel(id);
+        pills.appendChild(p);
+      });
+      if (!m.citations.length) {
+        const p = document.createElement("span");
+        p.className = "citepill";
+        p.textContent = "no matching policy";
+        pills.appendChild(p);
+      }
+      wrap.appendChild(pills);
+    } else if (m.who === "agent" && m.showNoCitation) {
+      const pills = document.createElement("div");
+      pills.className = "citepills";
+      const p = document.createElement("span");
+      p.className = "citepill";
+      p.textContent = "no governing KB policy found";
+      pills.appendChild(p);
+      wrap.appendChild(pills);
+    }
+
+    if (m.ticketId) {
+      const t = tickets.find(x => x.id === m.ticketId);
+      if (t) {
+        const box = document.createElement("div");
+        box.className = "ticket-inline";
+        box.innerHTML = `<b>${t.id}</b> · ${escapeHtml(t.status)}<br>Assigned: ${escapeHtml(t.assignedTo)}`;
+        box.style.cursor = "pointer";
+        box.addEventListener("click", () => openDrawer(t.id));
+        wrap.appendChild(box);
+      }
+    }
+    return wrap;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function renderChat() {
+    chatScroller.innerHTML = "";
+    if (!messages.length) {
+      const intro = document.createElement("div");
+      intro.className = "msg agent";
+      intro.innerHTML = `<div class="who">Service Desk Agent</div><div class="bubble">Hi — I'm the Veridian IT service desk agent. Describe an issue below, or tap a sample request to see how I handle it (including a couple of tricky/edge cases from this week's queue).</div>`;
+      chatScroller.appendChild(intro);
+    }
+    messages.forEach(m => chatScroller.appendChild(renderMessage(m)));
+    chatScroller.scrollTop = chatScroller.scrollHeight;
+  }
+
+  function pushUserMessage(text) {
+    messages.push({ who: "user", text });
+  }
+  function pushAgentMessage(decision, ticketId) {
+    messages.push({
+      who: "agent",
+      text: decision.message,
+      citations: decision.citations,
+      showNoCitation: decision.citations && decision.citations.length === 0,
+      ticketId
+    });
+  }
+
+  function handleUserSubmit(rawText, employeeName) {
+    const text = rawText.trim();
+    if (!text) return;
+    pushUserMessage(text);
+    renderChat();
+
+    const decision = runAgent(text, pendingFollowup);
+
+    if (decision.status === "followup") {
+      let ticketId = null;
+      if (pendingFollowup) {
+        // Still gathering info on an already-open ticket — log the exchange, stay open.
+        const t = updateLastTicketFollowup(
+          { statusLabel: "Pending Info — awaiting employee reply", assignedTo: "Employee", citations: decision.citations, message: decision.message },
+          text
+        );
+        ticketId = t ? t.id : null;
+      } else {
+        // First turn and we already need more info: open the ticket now so the
+        // question and eventual answer both land in one auditable record.
+        const t = createTicket({
+          employee: employeeName || "You",
+          summary: text,
+          category: classify(text),
+          statusLabel: "Pending Info — awaiting employee reply",
+          assignedTo: "Employee",
+          citations: decision.citations,
+          message: decision.message
+        });
+        ticketId = t.id;
+      }
+      pendingFollowup = decision.followup;
+      pushAgentMessage(decision, ticketId);
+    } else {
+      let ticketId;
+      if (pendingFollowup) {
+        const t = updateLastTicketFollowup(decision, text);
+        ticketId = t ? t.id : null;
+      } else {
+        const t = createTicket({
+          employee: employeeName || "You",
+          summary: text,
+          category: classify(text),
+          statusLabel: decision.statusLabel,
+          assignedTo: decision.assignedTo,
+          citations: decision.citations,
+          message: decision.message
+        });
+        ticketId = t.id;
+      }
+      pendingFollowup = null;
+      pushAgentMessage(decision, ticketId);
+    }
+    renderChat();
+    renderTickets();
+    saveState();
+  }
+
+  // ---- Chips (sample requests) ----------------------------------------------
+  const chipRow = document.getElementById("chipRow");
+  EMPLOYEE_REQUESTS.forEach(r => {
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "chip";
+    chip.textContent = `${r.id} — ${r.name.split(" ")[0]}`;
+    chip.title = r.text;
+    chip.addEventListener("click", () => {
+      pendingFollowup = null; // starting a fresh sample resets any half-answered follow-up
+      handleUserSubmit(r.text, r.name);
+    });
+    chipRow.appendChild(chip);
+  });
+
+  // ---- Composer ---------------------------------------------------------
+  const composerForm = document.getElementById("composerForm");
+  const msgInput = document.getElementById("msgInput");
+  composerForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = msgInput.value;
+    msgInput.value = "";
+    handleUserSubmit(v, "You");
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    tickets = [];
+    messages = [];
+    pendingFollowup = null;
+    ticketSeq = 1052;
+    saveState();
+    renderChat();
+    renderTickets();
+  });
+
+  // ---- Right pane: Tickets / KB / About --------------------------------------
+  const rpBody = document.getElementById("rpBody");
+  const rpTabs = document.querySelectorAll(".rp-tabs button");
+  let activeRp = "tickets";
+
+  rpTabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      rpTabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeRp = btn.dataset.rp;
+      renderRightPane();
+    });
+  });
+
+  function statusClass(status) {
+    const s = (status || "").toLowerCase();
+    if (s.includes("resolved") || s.includes("not eligible")) return "status-resolved";
+    if (s.includes("escalat")) return "status-escalated";
+    if (s.includes("pending")) return "status-pending";
+    if (s.includes("progress")) return "status-progress";
+    if (s.includes("rejected")) return "status-rejected";
+    return "status-info";
+  }
+
+  function renderTickets() {
+    if (activeRp !== "tickets") return;
+    rpBody.innerHTML = "";
+
+    const liveLabel = document.createElement("div");
+    liveLabel.className = "section-label";
+    liveLabel.textContent = `This session (${tickets.length})`;
+    rpBody.appendChild(liveLabel);
+
+    if (!tickets.length) {
+      const empty = document.createElement("div");
+      empty.style.cssText = "font-size:12.5px;color:var(--ink-faint);padding:4px 2px 8px;";
+      empty.textContent = "No tickets yet — send a request in the chat to see one created here.";
+      rpBody.appendChild(empty);
+    }
+    tickets.forEach(t => rpBody.appendChild(ticketRow(t)));
+
+    const seedLabel = document.createElement("div");
+    seedLabel.className = "section-label";
+    seedLabel.textContent = "Existing queue (precedent)";
+    rpBody.appendChild(seedLabel);
+    SEED_TICKETS.forEach(t => rpBody.appendChild(ticketRow(t)));
+  }
+
+  function ticketRow(t) {
+    const row = document.createElement("div");
+    row.className = "ticket-row";
+    row.innerHTML = `
+      <div class="row-top">
+        <span class="tid">${t.id}</span>
+        <span class="status-pill ${statusClass(t.status)}">${escapeHtml(t.status)}</span>
+      </div>
+      <div class="tsum">${escapeHtml(t.summary)}</div>
+      <div class="temp">${escapeHtml(t.employee)}${t.assignedTo ? " · assigned: " + escapeHtml(t.assignedTo) : ""}</div>
+    `;
+    row.addEventListener("click", () => openDrawer(t.id));
+    return row;
+  }
+
+  function renderKB() {
+    if (activeRp !== "kb") return;
+    rpBody.innerHTML = "";
+    const label = document.createElement("div");
+    label.className = "section-label";
+    label.textContent = "Ground-truth policies the agent can cite";
+    rpBody.appendChild(label);
+    KB.forEach(k => {
+      const card = document.createElement("div");
+      card.className = "kb-card";
+      card.innerHTML = `<div class="kid">${k.id}</div><h4>${escapeHtml(k.title)}</h4><p>${escapeHtml(k.text)}</p>`;
+      rpBody.appendChild(card);
+    });
+  }
+
+  function renderAbout() {
+    if (activeRp !== "about") return;
+    rpBody.innerHTML = `
+      <div class="section-label">What you're looking at</div>
+      <p style="font-size:13px;line-height:1.6;color:var(--ink-soft);">
+      This is a working prototype of an internal IT service-desk agent for Veridian Corp,
+      built from the Assignment 2 data pack (10 KB articles, one asset policy, 15 employee
+      requests, 10 seed tickets). Try the sample chips, or type your own issue.
+      </p>
+      <div class="section-label">Decision flow, per message</div>
+      <ol style="font-size:13px;line-height:1.7;color:var(--ink-soft);padding-left:18px;">
+        <li>Classify the issue against the 10 KB categories (keyword match) — or detect a suspected security incident first, always highest priority.</li>
+        <li>If a required detail is missing (device age, contractor vs. full-time, catalog status, remote days/week, or the message is too vague to classify), ask one follow-up question rather than assuming.</li>
+        <li>Apply the matching policy's rule: self-service resolution, or escalation to IT / Security / Finance / a manager.</li>
+        <li>Where policies conflict (see KB-03 vs. the Asset Management Policy) or no policy exists (privileged server access), say so explicitly and route for human sign-off instead of guessing.</li>
+        <li>Create or update a structured ticket with a full timestamped audit trail and the exact KB id(s) used, visible in the Tickets tab.</li>
+      </ol>
+      <div class="section-label">Notable edge cases to try</div>
+      <p style="font-size:13px;line-height:1.6;color:var(--ink-soft);">
+      REQ-01 (KB-03 vs. Asset Management Policy conflict), REQ-10 (no policy grants admin
+      access — precedent TK-1050), REQ-11 (contractor VPN needs manager approval), REQ-15
+      (too vague — agent asks before acting).
+      </p>
+      <div class="section-label">Data boundary</div>
+      <p style="font-size:13px;line-height:1.6;color:var(--ink-soft);">
+      The agent only reasons over the KB, asset policy, and ticket precedents in the data
+      pack — it never invents a policy. Everything runs client-side in your browser; nothing
+      is sent to a server. Reset clears this session's tickets only.
+      </p>
+    `;
+  }
+
+  function renderRightPane() {
+    if (activeRp === "tickets") renderTickets();
+    else if (activeRp === "kb") renderKB();
+    else renderAbout();
+  }
+
+  // ---- Drawer -----------------------------------------------------------
+  const drawer = document.getElementById("drawer");
+  const drawerBackdrop = document.getElementById("drawerBackdrop");
+  const drawerBody = document.getElementById("drawerBody");
+  const drawerTid = document.getElementById("drawerTid");
+
+  function findTicket(id) {
+    return tickets.find(t => t.id === id) || SEED_TICKETS.find(t => t.id === id);
+  }
+
+  function openDrawer(id) {
+    const t = findTicket(id);
+    if (!t) return;
+    drawerTid.textContent = t.id;
+    const citeStr = (t.citations && t.citations.length) ? t.citations.map(citeLabel).join(", ") : "No governing KB policy found";
+    drawerBody.innerHTML = `
+      <dl class="kv">
+        <dt>Employee</dt><dd>${escapeHtml(t.employee)}</dd>
+        <dt>Summary</dt><dd>${escapeHtml(t.summary)}</dd>
+        <dt>Status</dt><dd><span class="status-pill ${statusClass(t.status)}">${escapeHtml(t.status)}</span></dd>
+        <dt>Assigned to</dt><dd>${escapeHtml(t.assignedTo || "—")}</dd>
+        <dt>Source(s)</dt><dd>${escapeHtml(citeStr)}</dd>
+      </dl>
+      <div class="section-label">Audit trail</div>
+      <div id="auditList"></div>
+    `;
+    const list = drawerBody.querySelector("#auditList");
+    (t.audit || []).forEach(a => {
+      const item = document.createElement("div");
+      item.className = "audit-item";
+      item.innerHTML = `<span class="ts">${escapeHtml(a.ts)}</span><span class="actor">${escapeHtml(a.actor)}</span><div class="action">${escapeHtml(a.action)}</div>`;
+      list.appendChild(item);
+    });
+    drawer.classList.add("open");
+    drawerBackdrop.classList.add("open");
+  }
+  function closeDrawer() {
+    drawer.classList.remove("open");
+    drawerBackdrop.classList.remove("open");
+  }
+  document.getElementById("drawerClose").addEventListener("click", closeDrawer);
+  drawerBackdrop.addEventListener("click", closeDrawer);
+
+  // ---- Mobile tabs --------------------------------------------------------
+  const mobileTabs = document.querySelectorAll("#mobileTabs button");
+  const paneChat = document.getElementById("paneChat");
+  const paneRight = document.getElementById("paneRight");
+  mobileTabs.forEach(btn => {
+    btn.addEventListener("click", () => {
+      mobileTabs.forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      if (btn.dataset.pane === "chat") {
+        paneChat.classList.add("mobile-active");
+        paneRight.classList.remove("mobile-active");
+      } else {
+        paneRight.classList.add("mobile-active");
+        paneChat.classList.remove("mobile-active");
+      }
+    });
+  });
+
+  // ---- Theme toggle -------------------------------------------------------
+  const themeBtn = document.getElementById("themeBtn");
+  function applyTheme(t) {
+    if (t) document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+  }
+  themeBtn.addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const next = cur === "dark" ? "light" : cur === "light" ? null : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("veridian-theme", next || ""); } catch (e) {}
+  });
+  try {
+    const savedTheme = localStorage.getItem("veridian-theme");
+    if (savedTheme) applyTheme(savedTheme);
+  } catch (e) {}
+
+  // ---- Init ---------------------------------------------------------------
+  loadState();
+  renderChat();
+  renderRightPane();
+})();
+
+</script>
+</body>
+</html>
